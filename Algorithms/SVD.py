@@ -69,5 +69,11 @@ def golubKahanSVD(B,a,b):
     eigs = np.linalg.eigvals(C)
     mean = eigs[np.argmin(np.abs(eigs - C[1, 1]))]
 
+    alpha = B[a,a]^2 - mean
+    beta = B[a,a]*B[a,a+1]
+
+    for i in range(a,b-1):
+        pass
+
     
 
