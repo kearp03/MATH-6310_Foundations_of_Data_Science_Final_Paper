@@ -1,5 +1,7 @@
 import numpy as np
 import math
+import pickle
+from pathlib import Path
 
 def tensor_to_matrix(tensor:np.ndarray, mode:int) -> np.ndarray:
     return np.moveaxis(tensor, mode, 0).reshape(tensor.shape[mode], -1)
@@ -14,7 +16,7 @@ def frobenius_norm(A:np.ndarray) -> float:
     return math.sqrt(np.sum(A**2))
 
 def matrix_reconstruction(sigma:np.ndarray, U:np.ndarray, V:np.ndarray, rank:int) -> np.ndarray:
-    return U[:,:rank]@np.diag(sigma[:rank])@np.transpose(V[:,:rank])
+    return U[:,:rank]@np.diag(sigma[:rank])@V[:,:rank].T
 
 def mode_wise_product(tensor:np.ndarray, matrix:np.ndarray, mode:int):
     result = np.tensordot(tensor, matrix, axes=([mode], [1]))
@@ -24,3 +26,11 @@ def tensor_reconstruction(S:np.ndarray, U1:np.ndarray, U2:np.ndarray, U3:np.ndar
     A = mode_wise_product(S, U1, 0)
     A = mode_wise_product(A, U2, 1)
     return mode_wise_product(A, U3, 2)
+
+def save_pickle(obj, file:Path):
+    with open(file, 'wb') as f:
+        pickle.dump(obj, f)
+
+def read_pickle(file:Path):
+    with open(file, 'rb') as f:
+        return pickle.load(f)
