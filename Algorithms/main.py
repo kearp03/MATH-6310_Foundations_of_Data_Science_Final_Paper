@@ -85,7 +85,7 @@ def run_SVD(data_tensor: np.ndarray, save_directory: Path, ranks: list[int], thr
     save_pickle(elem_stored, save_directory / 'elem_stored_SVD.pkl')
 
 def run_HOSVD(data_tensor: np.ndarray, save_directory: Path, ranks: list[int], threshold: float):
-    # Run HOSVD on entire data tensor and save U1, U2, and U3
+    # Run HOSVD on entire data tensor
     flattened_tensor = tensor_to_matrix(data_tensor, 0)
     U1, B1, V1 = SVD.householderReduction(flattened_tensor)
     SVD.golubReinschSVD(U1, B1, V1, iterations=10000, threshold=threshold)
@@ -102,10 +102,10 @@ def run_HOSVD(data_tensor: np.ndarray, save_directory: Path, ranks: list[int], t
     fro_errors = []
     elem_stored = []
     for rank in ranks:
-        Sr = tensor_reconstruction(data_tensor, U1[:, :rank].T, U2[:, :rank].T, U3[:, :rank].T)
-        approx_data_tensor = tensor_reconstruction(Sr, U1[:, :rank], U2[:, :rank], U3[:, :rank])
+        Sr = tensor_reconstruction(data_tensor, U1[:, :rank].T, U2[:, :rank].T, U3[:, :min(rank, U3.shape[1])].T)
+        approx_data_tensor = tensor_reconstruction(Sr, U1[:, :rank], U2[:, :rank], U3[:, :min(rank, U3.shape[1])])
         fro_errors.append(frobenius_norm(data_tensor - approx_data_tensor))
-        elem_stored.append(Sr.shape + U1[:, :rank].shape + U2[:, :rank].shape + U3[:, :rank])
+        elem_stored.append(Sr.shape + U1[:, :rank].shape + U2[:, :rank].shape + U3[:, :min(rank, U3.shape[1])].shape)
 
     # Save results as pickle files
     save_pickle(ranks, save_directory / 'ranks.pkl')
@@ -121,7 +121,7 @@ if __name__ == '__main__':
     data_tensor, save_directory = get_data(month)
 
     # Ranks to test reconstructions at
-    ranks = [1, 5, 10, 50, 100, 500, 1000, 2000, 3000, 3276]
+    ranks = [1, 5, 10, 25, 30, 50, 100, 500, 1000, 2000, 3000, 3276]
 
     # Run SVD on frontal slices and save results to pickle files
     run_SVD(data_tensor, save_directory, ranks, threshold)
