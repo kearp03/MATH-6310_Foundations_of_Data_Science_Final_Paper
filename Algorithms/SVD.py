@@ -10,7 +10,7 @@ def householder(x):
     return vector / np.linalg.norm(vector)
 
 def householderReduction(A):
-    B = np.array(A)
+    B = np.array(A, type=float)
     m, n = B.shape
     U = np.identity(m)
     V = np.identity(n)
@@ -29,7 +29,7 @@ def householderReduction(A):
 
     return U,B,V
 
-threshold = 10^-10
+threshold = 1e-8
 def checkSize(B):
     superdiag = np.diagonal(B, offset=1)
     zeroIndex = np.flatnonzero(superdiag == 0)
@@ -77,7 +77,7 @@ def givensRotationMatrix(a, b):
         s = -1 / u
         c = t / u
     givenMatrix = np.zeros((2,2))
-    givenMatrix[0,0], givenMatrix[1,1] = c
+    givenMatrix[0,0] = givenMatrix[1,1] = c
     givenMatrix[0,1] = -s
     givenMatrix[1,0] = s
 
@@ -105,10 +105,10 @@ def golubKahanSVD(B,i,b):
     if B[i,i] == 0:
         return givensRotation(B,i,b, 0, 1)
     C = np.empty([2, 2])
-    C[0,0] = B[b-2,b-3]^2 + B[b-2,b-2]^2
+    C[0,0] = B[b-2,b-3]**2 + B[b-2,b-2]**2
     C[0,1] = B[b-2,b-1]*B[b-2,b-2]
     C[1,0] = np.copy(C[0,1])
-    C[1,1] = B[b-1,b-1]^2 + B[b-2,b-1]^2
+    C[1,1] = B[b-1,b-1]**2 + B[b-2,b-1]**2
 
     eigs = np.linalg.eigvals(C)
     mean = eigs[np.argmin(np.abs(eigs - C[1, 1]))]
