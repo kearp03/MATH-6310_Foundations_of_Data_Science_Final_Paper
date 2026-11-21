@@ -1,19 +1,15 @@
 import numpy as np
 import scipy.io
 from pathlib import Path
-import pickle
-# import SVD
-# import helper_functions
+import SVD
+from helper_functions import *
 
-if __name__ == '__main__':
+def get_data(month: str):
     # Get directories as Paths
     current_directory = Path.cwd()
     parent_directory = current_directory.parent
     data_directory = Path()
     save_directory = Path()
-    
-    # Determine which month to analyze
-    month = input('Enter month to analyze: ').lower()
     
     # Set directories as appropriate for each month
     match month:
@@ -26,6 +22,9 @@ if __name__ == '__main__':
         case 'june':
             data_directory = parent_directory / 'Prepared_June_2015'
             save_directory = parent_directory / 'June_Files'
+        case 'all':
+            data_directory = parent_directory / 'Prepared_All_2015'
+            save_directory = parent_directory / 'All_Months_Files'
         case _:
             print('Month not available')
             exit()
@@ -34,8 +33,7 @@ if __name__ == '__main__':
     
     # Try to read in data tensor from pickle file
     try:
-        with open(save_directory / 'data_tensor.pkl', 'rb') as file:
-            data_tensor: np.ndarray = pickle.load(file)
+        data_tensor = read_pickle(save_directory / 'data_tensor.pkl')
         print('Data tensor read successfully')
     
     # If file hasn't been created yet, read in Matlab files to create it
@@ -48,14 +46,85 @@ if __name__ == '__main__':
         data_tensor = np.zeros((3312,3276,number_of_days))
 
         # Load each day's data into each frontal slice of the data tensor
-        for i, file_path in enumerate(data_directory.glob('SM_*.mat')):
+        for i, file_path in enumerate(sorted(data_directory.glob('SM_*.mat'))):
             data_tensor[:,:,i] = scipy.io.loadmat(file_path)['D']
 
         # Save the data tensor to be read easier later
-        with open(save_directory / 'data_tensor.pkl', 'wb') as file:
-            pickle.dump(data_tensor, file)
+        save_pickle(data_tensor, save_directory / 'data_tensor.pkl')
+    return data_tensor, save_directory
 
+def run_SVD(data_tensor: np.ndarray, save_directory: Path, ranks: list[int], threshold: float):
     # Run SVD on frontal slices and save U, S, and V for later
+    U_matrices: list[np.ndarray] = []
+    S_vectors: list[np.ndarray] = []
+    V_matrices: list[np.ndarray] = []
     for i in range(data_tensor.shape[2]):
-        monthly_matrix = data_tensor[:,:,i]
-        
+        daily_matrix = data_tensor[:,:,i]
+
+        U, B, V = SVD.householderReduction(daily_matrix)
+        S = np.diag(SVD.golubReinschSVD(U, B, V, iterations=10000, threshold=threshold))
+        U_matrices.append(U)
+        S_vectors.append(S)
+        V_matrices.append(V)
+
+    # Test different reconstructed tensors using different truncated SVDs
+    fro_errors = []
+    elem_stored = []
+    for i in range(len(ranks)):
+        rank = ranks[i]
+        approx_data_tensor = np.zeros_like(data_tensor)
+        elem_stored.append(0)
+        for j in range(data_tensor.shape[2]):
+            approx_data_tensor[:,:,j] = matrix_reconstruction(S_vectors[j], U_matrices[j], V_matrices[j], rank)
+            elem_stored[i] += S_vectors[j][:rank].size + U_matrices[j][:, :rank].size + V_matrices[j][:, :rank].size
+        fro_errors.append(frobenius_norm(data_tensor - approx_data_tensor))
+    
+    # Save results as pickle files
+    save_pickle(ranks, save_directory / 'ranks.pkl')
+    save_pickle(fro_errors, save_directory / 'fro_errors_SVD.pkl')
+    save_pickle(elem_stored, save_directory / 'elem_stored_SVD.pkl')
+
+def run_HOSVD(data_tensor: np.ndarray, save_directory: Path, ranks: list[int], threshold: float):
+    # Run HOSVD on entire data tensor and save U1, U2, and U3
+    flattened_tensor = tensor_to_matrix(data_tensor, 0)
+    U1, B1, V1 = SVD.householderReduction(flattened_tensor)
+    SVD.golubReinschSVD(U1, B1, V1, iterations=10000, threshold=threshold)
+    
+    flattened_tensor = tensor_to_matrix(data_tensor, 1)
+    U2, B2, V2 = SVD.householderReduction(flattened_tensor)
+    SVD.golubReinschSVD(U2, B2, V2, iterations=10000, threshold=threshold)
+    
+    flattened_tensor = tensor_to_matrix(data_tensor, 2)
+    U3, B3, V3 = SVD.householderReduction(flattened_tensor)
+    SVD.golubReinschSVD(U3, B3, V3, iterations=10000, threshold=threshold)
+
+    # Test different reconstructed tensors using different truncated HOSVDs
+    fro_errors = []
+    elem_stored = []
+    for rank in ranks:
+        Sr = tensor_reconstruction(data_tensor, U1[:, :rank].T, U2[:, :rank].T, U3[:, :rank].T)
+        approx_data_tensor = tensor_reconstruction(Sr, U1[:, :rank], U2[:, :rank], U3[:, :rank])
+        fro_errors.append(frobenius_norm(data_tensor - approx_data_tensor))
+        elem_stored.append(Sr.shape + U1[:, :rank].shape + U2[:, :rank].shape + U3[:, :rank])
+
+    # Save results as pickle files
+    save_pickle(ranks, save_directory / 'ranks.pkl')
+    save_pickle(fro_errors, save_directory / 'fro_errors_HOSVD.pkl')
+    save_pickle(elem_stored, save_directory / 'elem_stored_HOSVD.pkl')
+
+if __name__ == '__main__':
+    # Threshold for SVD algorithms
+    threshold = 1e-8
+    
+    # Determine which month to analyze
+    month = input('Enter month to analyze: ').lower()
+    data_tensor, save_directory = get_data(month)
+
+    # Ranks to test reconstructions at
+    ranks = [1, 5, 10, 50, 100, 500, 1000, 2000, 3000, 3276]
+
+    # Run SVD on frontal slices and save results to pickle files
+    run_SVD(data_tensor, save_directory, ranks, threshold)
+
+    # Run HOSVD on whole tensor and save results to pickle files
+    run_HOSVD(data_tensor, save_directory, ranks, threshold)
