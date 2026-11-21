@@ -87,16 +87,16 @@ def run_SVD(data_tensor: np.ndarray, save_directory: Path, ranks: list[int], thr
 def run_HOSVD(data_tensor: np.ndarray, save_directory: Path, ranks: list[int], threshold: float):
     # Run HOSVD on entire data tensor
     flattened_tensor = tensor_to_matrix(data_tensor, 0)
-    U1, B1, V1 = SVD.householderReduction(flattened_tensor)
-    SVD.golubReinschSVD(U1, B1, V1, iterations=10000, threshold=threshold)
+    U1, B1 = SVD.householderReduction(flattened_tensor)
+    SVD.golubReinschHOSVD(U1, B1, iterations=10000, threshold=threshold)
     
     flattened_tensor = tensor_to_matrix(data_tensor, 1)
-    U2, B2, V2 = SVD.householderReduction(flattened_tensor)
-    SVD.golubReinschSVD(U2, B2, V2, iterations=10000, threshold=threshold)
+    U2, B2 = SVD.householderReductionHO(flattened_tensor)
+    SVD.golubReinschSVD(U2, B2, iterations=10000, threshold=threshold)
     
     flattened_tensor = tensor_to_matrix(data_tensor, 2)
-    U3, B3, V3 = SVD.householderReduction(flattened_tensor)
-    SVD.golubReinschSVD(U3, B3, V3, iterations=10000, threshold=threshold)
+    U3, B3 = SVD.householderReduction(flattened_tensor)
+    SVD.golubReinschSVD(U3, B3, iterations=10000, threshold=threshold)
 
     # Test different reconstructed tensors using different truncated HOSVDs
     fro_errors = []
