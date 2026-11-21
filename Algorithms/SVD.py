@@ -10,7 +10,7 @@ def householder(x):
     return vector / np.linalg.norm(vector)
 
 def householderReduction(A):
-    B = np.array(A, type=float)
+    B = np.array(A, dtype=float)
     m, n = B.shape
     U = np.identity(m)
     V = np.identity(n)
