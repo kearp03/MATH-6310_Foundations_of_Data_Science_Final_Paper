@@ -55,8 +55,7 @@ def golubReinschSVD(U,B,V, iterations, threshold):
         a,b = checkSize(B)
         if b == 0:
             return B
-        for i in range(a,b-2):
-            golubKahanSVD(B,i,b)
+        golubKahanSVD(B,a,b)
     return B
 
 def givensRotationMatrix(a, b):
@@ -79,37 +78,47 @@ def givensRotationMatrix(a, b):
     givenMatrix = np.zeros((2,2))
     givenMatrix[0,0] = c
     givenMatrix[1,1] = c
-    givenMatrix[0,1] = s
-    givenMatrix[1,0] = -s
+    givenMatrix[0,1] = -s
+    givenMatrix[1,0] = s
+
 
     return givenMatrix
 
-def golubKahanSVD(B,i,b):
+def golubKahanSVD(B,a,b):
     C = np.empty([2, 2])
-    C[0,0] = B[b-2,b-3]**2 + B[b-2,b-2]**2
+    g = B[b-3,b-2] if b-3 >= a else 0.0 
+
+    C[0,0] = g**2 + B[b-2,b-2]**2
     C[0,1] = B[b-2,b-1]*B[b-2,b-2]
-    C[1,0] = np.copy(C[0,1])
+    C[1,0] = C[0,1]
     C[1,1] = B[b-1,b-1]**2 + B[b-2,b-1]**2
 
-    eigs = np.linalg.eigvals(C).real
+    eigs = np.linalg.eigvalsh(C)
     mean = eigs[np.argmin(np.abs(eigs - C[1, 1]))]
 
-    alpha = B[i,i]**2 - mean
-    beta = B[i,i]*B[i,i+1]
+    alpha = B[a,a]**2 - mean
+    beta = B[a,a]*B[a,a+1]
 
-    if i == b-2:
+    for j in range(a, b-1):
+        lo = max(j-1, a)          
+        hi = min(j+3, b)          
+        
         givenMatrix = givensRotationMatrix(alpha, beta).T
-        B[i:i+2, i:i+2] = np.matmul(B[i:i+2, i:i+2], givenMatrix)
-    
-        givenMatrix = givensRotationMatrix(B[i,i], B[i+1,i])
-        B[i:i+2, i:i+2] = np.matmul(givenMatrix, B[i:i+2, i:i+2])
-        return
-    givenMatrix = givensRotationMatrix(alpha, beta).T
-    B[i:i+3, i:i+2] = np.matmul(B[i:i+3, i:i+2], givenMatrix)
+        B[lo:j+2, j:j+2] = np.matmul(B[lo:j+2, j:j+2], givenMatrix)
 
-    givenMatrix = givensRotationMatrix(B[i,i], B[i+1,i])
-    B[i:i+2, i:i+3] = np.matmul(givenMatrix, B[i:i+2, i:i+3])
-    return
+        alpha= B[j,j]
+        beta = B[j+1,j]
+
+        givenMatrix = givensRotationMatrix(alpha, beta)
+        B[j:j+2, j:hi] = np.matmul(givenMatrix, B[j:j+2, j:hi])
+
+        if (j<b-2):
+            alpha= B[j,j+1]
+            beta = B[j,j+2]
+
+
+
+
 
 
 
