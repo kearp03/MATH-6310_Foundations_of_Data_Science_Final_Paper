@@ -47,17 +47,18 @@ def checkSize(B):
     matrix22para = zeroIndex[a-1]+1 
     return matrix22para, nonzeroIndex[-1]+1
 
-def GolubReinschSVD(U,B,V):
+def GolubReinschSVD(U,B,V, iterations):
     n,m = B.shape
     iterate = min(n,m)
-    for i in range(iterate-1):
-        if abs(B[i,i+1]) < threshold:
-            B[i,i+1]=0
-    a,b = checkSize(B)
-    if b == 0:
-        exit
-    for i in range(a,b-1):
-        golubKahanSVD(B,i,b)
+    for it in range(iterations):
+        for i in range(iterate-1):
+            if abs(B[i,i+1]) < threshold:
+                B[i,i+1]=0
+        a,b = checkSize(B)
+        if b == 0:
+            exit
+        for i in range(a,b-1):
+            golubKahanSVD(B,i,b)
 
 def givensRotationMatrix(a, b):
     if b == 0:
