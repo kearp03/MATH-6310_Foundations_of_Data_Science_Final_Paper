@@ -114,7 +114,7 @@ def golubKahanSVD(B,i,b):
     eigs = np.linalg.eigvals(C)
     mean = eigs[np.argmin(np.abs(eigs - C[1, 1]))]
 
-    alpha = B[i,i]^2 - mean
+    alpha = B[i,i]**2 - mean
     beta = B[i,i]*B[i,i+1]
 
     return givensRotation(B,i,b,alpha,beta)
