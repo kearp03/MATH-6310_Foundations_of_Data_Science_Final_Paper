@@ -1,6 +1,5 @@
-#Algorithm 1a: Householder reduction to bidiagonal form:
 import numpy as np
-
+#Performs the householder operation using an optimized calculation to avoid calculating H
 def householder(x):
     vector = np.array(x)
     norm = np.linalg.norm(vector)
@@ -15,6 +14,8 @@ def householderReduction(A):
     U = np.identity(m)
     V = np.identity(n)
 
+    # For each diagonal element, we need to apply a left and right 
+    # householder reflection to B and the householder matrices. 
     for k in range(n):
         u = householder(B[k:, k])
         B[k:,k:] -= 2 * np.outer(u, np.matmul(u,  B[k:, k:]))
@@ -29,6 +30,7 @@ def householderReduction(A):
 
     return U,B,V
 
+#Organizes the diagonal matrix in decreasing order and sorts U and V accordingly
 def orderSVD(U,B,V, iterate):
     diag = np.diag(B).copy()
     U[:, :iterate] *= np.where(diag < 0, -1.0, 1.0)
@@ -42,6 +44,7 @@ def orderSVD(U,B,V, iterate):
     B[np.arange(iterate), np.arange(iterate)] = diag[order]
     return U, B, V
 
+#Finding the submatrix size for Golub-Reinsch SVD
 def checkSize(B):
     superdiag = np.diagonal(B, offset=1)
     zeroIndex = np.flatnonzero(superdiag == 0)
@@ -58,6 +61,7 @@ def checkSize(B):
     matrix22para = zeroIndex[a-1] + 1 if a > 0 else 0
     return matrix22para, nonzeroIndex[-1]+2
 
+#Zero out floating point error values and complete Golub-Kahan SVD
 def golubReinschSVD(U,B,V, iterations, threshold):
     n,m = B.shape
     iterate = min(n,m)
@@ -71,6 +75,7 @@ def golubReinschSVD(U,B,V, iterations, threshold):
         golubKahanSVD(U,B,V,a,b)
     return orderSVD(U,B,V, iterate)
 
+#Entry values for the rotation matrix while avoiding bad calculations
 def givensRotationMatrix(a, b):
     if b == 0:
         c = np.copysign(1, a)
@@ -97,6 +102,8 @@ def givensRotationMatrix(a, b):
 
     return givenMatrix
 
+# Performs a Givens Rotation both on the left and right side to 
+# push the bulge off the matrix and diagonalize B after enough passes. 
 def golubKahanSVD(U,B,V,a,b):
     C = np.empty([2, 2])
     g = B[b-3,b-2] if b-3 >= a else 0.0 
@@ -131,6 +138,11 @@ def golubKahanSVD(U,B,V,a,b):
             alpha= B[j,j+1]
             beta = B[j,j+2]
 
+##################################################################
+# The methods below do not calculate V^T as the tensor operators # 
+# do not need it to save on calculations that are not required.  # 
+##################################################################
+
 def householderReductionHO(A):
     B = np.array(A, dtype=float)
     m, n = B.shape
@@ -162,7 +174,6 @@ def orderHOSVD(U,B, iterate):
     B = np.zeros_like(B)
     B[np.arange(iterate), np.arange(iterate)] = diag[order]
     return U, B
-
 
 def golubReinschHOSVD(U,B, iterations, threshold):
     n,m = B.shape
