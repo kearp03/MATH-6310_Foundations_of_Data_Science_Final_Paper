@@ -111,33 +111,7 @@ def golubKahanSVD(B,i,b):
     B[i:i+2, i:i+3] = np.matmul(givenMatrix, B[i:i+2, i:i+3])
     return
 
-np.set_printoptions(precision=4, suppress=True)
 
-def make_test_matrix(m, n, sing_vals, seed=0):
-    """Build A = Q1 @ diag(sing_vals) @ Q2.T with random orthogonal Q1, Q2."""
-    rng = np.random.default_rng(seed)
-    Q1, _ = np.linalg.qr(rng.standard_normal((m, m)))
-    Q2, _ = np.linalg.qr(rng.standard_normal((n, n)))
-    S = np.zeros((m, n))
-    k = len(sing_vals)
-    S[:k, :k] = np.diag(sing_vals)
-    return Q1 @ S @ Q2.T
-
-# Test 1: 5x4 with known singular values 10, 5, 2, 0.5
-A = make_test_matrix(5, 4, [10, 5, 2, 0.5])
-m, n = A.shape
-
-U, B, V = householderReduction(A)
-golubReinschSVD(U, B, V, 1000, 1e-10)
-print("after sweeps:\n", B)
-print("|diag| sorted:", np.sort(np.abs(np.diag(B)))[::-1])
-
-# Test 2: small hand-checkable case, singular values sqrt(40)=6.3246, sqrt(10)=3.1623
-A2 = np.array([[4.0, 0.0],
-               [3.0, -5.0]])
-U, B, V = householderReduction(A2)
-golubReinschSVD(U, B, V, 1000, 1e-10)
-print(B)
 
 
 
