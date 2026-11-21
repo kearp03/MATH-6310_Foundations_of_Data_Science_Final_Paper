@@ -3,3 +3,4 @@ SMAP-HB_surface-soil-moisture_30m_daily_netcdf/*.nc
 *.asv
 *.pkl
 *.json
+*.pyc
