@@ -5,6 +5,7 @@ import SVD
 from helper_functions import *
 import timeit
 import matplotlib.pyplot as plt
+import seaborn as sns
 
 def get_data(month: str):
     # Get directories as Paths
@@ -178,12 +179,63 @@ def run_HOSVD(data_tensor: np.ndarray, save_directory: Path, ranks: list[int], t
     save_pickle(fro_errors, save_directory / 'fro_errors_HOSVD.pkl')
     save_pickle(elem_stored, save_directory / 'elem_stored_HOSVD.pkl')
 
-def generate_figure(save_directory: Path):
-    pass
+def generate_figure(data_tensor: np.ndarray, save_directory: Path):
+    # Pull in data from pickle files
+    ranks = np.array(read_pickle(save_directory / 'ranks.pkl'))
+    errors_SVD = np.array(read_pickle(save_directory / 'fro_errors_SVD.pkl'))
+    elem_stored_SVD = np.array(read_pickle(save_directory / 'elem_stored_SVD.pkl')) / data_tensor.size
+    errors_HOSVD = np.array(read_pickle(save_directory / 'fro_errors_HOSVD.pkl'))
+    elem_stored_HOSVD = np.array(read_pickle(save_directory / 'elem_stored_HOSVD.pkl')) / data_tensor.size
+
+    # Generate rank vs. error plot
+    plt.plot(ranks, errors_SVD, label='Frontal Slice SVD')
+    plt.plot(ranks, errors_HOSVD, label='HOSVD')
+    plt.title('Rank of Truncated SVD and HOSVD vs. Frobenius norm error')
+    plt.xlabel('Rank')
+    plt.ylabel('Error')
+    plt.legend()
+    plt.savefig(save_directory / 'Rank_vs_Error.eps', format='eps', bbox_inches='tight')
+    plt.clf()
+
+    # Generate error vs. rel. elements stored
+    plt.plot(elem_stored_SVD, errors_SVD, label='Frontal Slice SVD')
+    plt.plot(elem_stored_HOSVD, errors_HOSVD, label='HOSVD')
+    plt.title('Relative Number of Elements Stored vs. Error')
+    plt.xlabel('Relative Number of Elements Stored')
+    plt.ylabel('Error')
+    plt.savefig(save_directory / 'Elem_Stored_vs_Error.eps', format='eps', bbox_inches='tight')
+    plt.clf()
+
+def generate_heatmaps(save_directory: Path, slice: int):
+    data_tensor = read_pickle(save_directory / 'data_tensor.pkl')
+    ranks = np.array(read_pickle(save_directory / 'ranks.pkl'))
+    U_matrices = read_pickle(save_directory / 'U_matrices.pkl')
+    S_vectors = read_pickle(save_directory / 'S_vectors.pkl')
+    V_matrices = read_pickle(save_directory / 'V_matrices.pkl')
+    U1 = read_pickle(save_directory / 'U1_HOSVD.pkl')
+    U2 = read_pickle(save_directory / 'U2_HOSVD.pkl')
+    U3 = read_pickle(save_directory / 'U3_HOSVD.pkl')
+
+    sns.heatmap(data_tensor[:,:,slice], cmap='viridis', annot=False)
+    plt.savefig(save_directory / 'base_heatmap.eps', format='eps', bbox_inches='tight')
+    plt.clf()
+
+    for rank in ranks:
+        approx_data_tensor = matrix_reconstruction(S_vectors[slice], U_matrices[slice], V_matrices[slice], rank)
+        ax = sns.heatmap(approx_data_tensor, cmap='viridis', annot=False)
+        ax.set(title=f'{rank} Rank Approximation SVD; Slice {slice}')
+        plt.savefig(save_directory / f'{rank}_SVD_heatmap_{slice}.eps', format='eps', bbox_inches='tight')
+        plt.clf()
+
+        Sr = tensor_reconstruction(data_tensor, U1[:, :rank].T, U2[:, :rank].T, U3[:, :min(rank, U3.shape[1])].T)
+        approx_data_tensor = tensor_reconstruction(Sr, U1[:, :rank], U2[:, :rank], U3[:, :min(rank, U3.shape[1])])
+        sns.heatmap(approx_data_tensor[:, :, slice], cmap='viridis', annot=False)
+        ax.set(title=f'{rank} Rank Approximation HOSVD; Slice {slice}')
+        plt.savefig(save_directory / f'{rank}_HOSVD_heatmap_{slice}.eps', format='eps', bbox_inches='tight')
+
 
 if __name__ == '__main__':
     # Threshold for SVD algorithms
-    
     threshold = 1e-8
     
     # Determine which month to analyze
@@ -198,7 +250,9 @@ if __name__ == '__main__':
     # run_SVD(data_tensor, save_directory, ranks, threshold)
 
     # Run HOSVD on whole tensor and save results to pickle files
-    run_HOSVD(data_tensor, save_directory, ranks, threshold)
+    # run_HOSVD(data_tensor, save_directory, ranks, threshold)
+
+    generate_figure(data_tensor=data_tensor, save_directory=save_directory)
 
     e = timeit.default_timer()
 
