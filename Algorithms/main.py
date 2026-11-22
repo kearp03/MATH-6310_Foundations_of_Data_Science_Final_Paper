@@ -7,7 +7,7 @@ import timeit
 
 def get_data(month: str):
     # Get directories as Paths
-    current_directory = Path.cwd()
+    current_directory = Path(__file__).resolve().parent
     parent_directory = current_directory.parent
     data_directory = Path()
     save_directory = Path()
@@ -30,7 +30,7 @@ def get_data(month: str):
             print('Month not available')
             exit()
     # Make directory for save files if it doesn't already exist
-    save_directory.mkdir(parents=True,exist_ok=True)
+    save_directory.mkdir(parents=True, exist_ok=True)
     
     # Try to read in data tensor from pickle file
     try:
@@ -60,10 +60,12 @@ def run_SVD(data_tensor: np.ndarray, save_directory: Path, ranks: list[int], thr
     S_vectors: list[np.ndarray] = []
     V_matrices: list[np.ndarray] = []
     for i in range(data_tensor.shape[2]):
-        daily_matrix = data_tensor[:,:,i]
+        print(i)
+        daily_matrix = data_tensor[:,:,i].copy()
 
         U, B, V = SVD.householderReduction(daily_matrix)
-        S = np.diag(SVD.golubReinschSVD(U, B, V, iterations=10000, threshold=threshold))
+        U, B, V = SVD.golubReinschSVD(U, B, V, iterations=10000, threshold=threshold)
+        S = np.diag(B)
         U_matrices.append(U)
         S_vectors.append(S)
         V_matrices.append(V)
@@ -87,14 +89,17 @@ def run_SVD(data_tensor: np.ndarray, save_directory: Path, ranks: list[int], thr
 
 def run_HOSVD(data_tensor: np.ndarray, save_directory: Path, ranks: list[int], threshold: float):
     # Run HOSVD on entire data tensor
+    print('Running first SVD')
     flattened_tensor = tensor_to_matrix(data_tensor, 0)
     U1, B1 = SVD.householderReductionHO(flattened_tensor)
     SVD.golubReinschHOSVD(U1, B1, 10000, threshold)
-    
+
+    print('Running second SVD')
     flattened_tensor = tensor_to_matrix(data_tensor, 1)
     U2, B2 = SVD.householderReductionHO(flattened_tensor)
     SVD.golubReinschHOSVD(U2, B2, 10000, threshold)
-    
+
+    print('Running third SVD')
     flattened_tensor = tensor_to_matrix(data_tensor, 2)
     U3, B3 = SVD.householderReductionHO(flattened_tensor)
     SVD.golubReinschHOSVD(U3, B3, 10000, threshold)
@@ -103,6 +108,7 @@ def run_HOSVD(data_tensor: np.ndarray, save_directory: Path, ranks: list[int], t
     fro_errors = []
     elem_stored = []
     for rank in ranks:
+        print(f'Rank = {rank}')
         Sr = tensor_reconstruction(data_tensor, U1[:, :rank].T, U2[:, :rank].T, U3[:, :min(rank, U3.shape[1])].T)
         approx_data_tensor = tensor_reconstruction(Sr, U1[:, :rank], U2[:, :rank], U3[:, :min(rank, U3.shape[1])])
         fro_errors.append(frobenius_norm(data_tensor - approx_data_tensor))
