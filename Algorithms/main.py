@@ -3,6 +3,7 @@ import scipy.io
 from pathlib import Path
 import SVD
 from helper_functions import *
+import timeit
 
 def get_data(month: str):
     # Get directories as Paths
@@ -87,16 +88,16 @@ def run_SVD(data_tensor: np.ndarray, save_directory: Path, ranks: list[int], thr
 def run_HOSVD(data_tensor: np.ndarray, save_directory: Path, ranks: list[int], threshold: float):
     # Run HOSVD on entire data tensor
     flattened_tensor = tensor_to_matrix(data_tensor, 0)
-    U1, B1 = SVD.householderReduction(flattened_tensor)
-    SVD.golubReinschHOSVD(U1, B1, iterations=10000, threshold=threshold)
+    U1, B1 = SVD.householderReductionHO(flattened_tensor)
+    SVD.golubReinschHOSVD(U1, B1, 10000, threshold)
     
     flattened_tensor = tensor_to_matrix(data_tensor, 1)
     U2, B2 = SVD.householderReductionHO(flattened_tensor)
-    SVD.golubReinschSVD(U2, B2, iterations=10000, threshold=threshold)
+    SVD.golubReinschHOSVD(U2, B2, 10000, threshold)
     
     flattened_tensor = tensor_to_matrix(data_tensor, 2)
-    U3, B3 = SVD.householderReduction(flattened_tensor)
-    SVD.golubReinschSVD(U3, B3, iterations=10000, threshold=threshold)
+    U3, B3 = SVD.householderReductionHO(flattened_tensor)
+    SVD.golubReinschHOSVD(U3, B3, 10000, threshold)
 
     # Test different reconstructed tensors using different truncated HOSVDs
     fro_errors = []
@@ -114,12 +115,14 @@ def run_HOSVD(data_tensor: np.ndarray, save_directory: Path, ranks: list[int], t
 
 if __name__ == '__main__':
     # Threshold for SVD algorithms
+    
     threshold = 1e-8
     
     # Determine which month to analyze
     month = input('Enter month to analyze: ').lower()
     data_tensor, save_directory = get_data(month)
 
+    s = timeit.default_timer()
     # Ranks to test reconstructions at
     ranks = [1, 5, 10, 25, 30, 50, 100, 500, 1000, 2000, 3000, 3276]
 
@@ -128,3 +131,7 @@ if __name__ == '__main__':
 
     # Run HOSVD on whole tensor and save results to pickle files
     run_HOSVD(data_tensor, save_directory, ranks, threshold)
+
+    e = timeit.default_timer()
+
+    print(f"Elapsed: {round((e - s) * 1e6, 3)} µs")

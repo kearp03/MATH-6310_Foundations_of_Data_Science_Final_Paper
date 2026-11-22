@@ -158,12 +158,11 @@ def householderReductionHO(A):
         if k< n-2:
             v = householder(B[k, k+1:])
             B[k:,k+1:] -= 2 * np.outer(np.matmul(B[k:, k+1:], v), v)
-            V[:,k+1:] -= 2 * np.outer(np.matmul(V[:, k+1:], v), v)
             B[k, k+2:] = 0
 
-    return U,B,V
+    return U,B
 
-def orderHOSVD(U,B, iterate):
+def orderHOSVD(U,B,iterate):
     diag = np.diag(B).copy()
     U[:, :iterate] *= np.where(diag < 0, -1.0, 1.0)
     diag = np.abs(diag)
@@ -184,9 +183,9 @@ def golubReinschHOSVD(U,B, iterations, threshold):
                 B[i,i+1]=0
         a,b = checkSize(B)
         if b == 0:
-            return orderSVD(U,B, iterate)
-        golubKahanSVD(U,B,a,b)
-    return orderSVD(U,B, iterate)
+            return orderHOSVD(U,B, iterate)
+        golubKahanHOSVD(U,B,a,b)
+    return orderHOSVD(U,B, iterate)
 
 def givensRotationMatrix(a, b):
     if b == 0:
@@ -214,7 +213,7 @@ def givensRotationMatrix(a, b):
 
     return givenMatrix
 
-def golubKahanSVD(U,B,V,a,b):
+def golubKahanHOSVD(U,B,a,b):
     C = np.empty([2, 2])
     g = B[b-3,b-2] if b-3 >= a else 0.0 
 
