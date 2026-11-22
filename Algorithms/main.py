@@ -4,6 +4,7 @@ from pathlib import Path
 import SVD
 from helper_functions import *
 import timeit
+import matplotlib.pyplot as plt
 
 def get_data(month: str):
     # Get directories as Paths
@@ -71,8 +72,8 @@ def run_SVD(data_tensor: np.ndarray, save_directory: Path, ranks: list[int], thr
         V_matrices.append(V)
 
     # Test different reconstructed tensors using different truncated SVDs
-    fro_errors = []
-    elem_stored = []
+    fro_errors: list[float] = []
+    elem_stored: list[int] = []
     for i in range(len(ranks)):
         rank = ranks[i]
         approx_data_tensor = np.zeros_like(data_tensor)
@@ -91,18 +92,66 @@ def run_HOSVD(data_tensor: np.ndarray, save_directory: Path, ranks: list[int], t
     # Run HOSVD on entire data tensor
     print('Running first SVD')
     flattened_tensor = tensor_to_matrix(data_tensor, 0)
-    U1, B1 = SVD.householderReductionHO(flattened_tensor)
-    SVD.golubReinschHOSVD(U1, B1, 10000, threshold)
+    try:
+        U1 = read_pickle(save_directory / 'U1_HOSVD_Householder.pkl')
+        B1 = read_pickle(save_directory / 'B1_HOSVD_Householder.pkl')
+        print('Householder Reduction read successfully')
+    except FileNotFoundError:
+        print('Running Householder Reduction')
+        U1, B1 = SVD.householderReductionHO(flattened_tensor)
+        save_pickle(U1, save_directory / 'U1_HOSVD_Householder.pkl')
+        save_pickle(B1, save_directory / 'B1_HOSVD_Householder.pkl')
+    try:
+        U1 = read_pickle(save_directory / 'U1_HOSVD.pkl')
+        # B1 = read_pickle(save_directory / 'B1_HOSVD.pkl')
+        print('Left Singular Values read successfully')
+    except FileNotFoundError:
+        print('Running Golub Reinsch Iterations')
+        U1, B1 = SVD.golubReinschHOSVD(U1, B1, 10000, threshold)
+        save_pickle(U1, save_directory / 'U1_HOSVD.pkl')
+        # save_pickle(B1, save_directory / 'B1_HOSVD.pkl')
 
     print('Running second SVD')
     flattened_tensor = tensor_to_matrix(data_tensor, 1)
-    U2, B2 = SVD.householderReductionHO(flattened_tensor)
-    SVD.golubReinschHOSVD(U2, B2, 10000, threshold)
+    try:
+        U2 = read_pickle(save_directory / 'U2_HOSVD_Householder.pkl')
+        B2 = read_pickle(save_directory / 'B2_HOSVD_Householder.pkl')
+        print('Householder Reduction read successfully')
+    except FileNotFoundError:
+        print('Running Householder Reduction')
+        U2, B2 = SVD.householderReductionHO(flattened_tensor)
+        save_pickle(U2, save_directory / 'U2_HOSVD_Householder.pkl')
+        save_pickle(B2, save_directory / 'B2_HOSVD_Householder.pkl')
+    try:
+        U2 = read_pickle(save_directory / 'U2_HOSVD.pkl')
+        # B2 = read_pickle(save_directory / 'B2_HOSVD.pkl')
+        print('Left Singular Values read successfully')
+    except FileNotFoundError:
+        print('Running Golub Reinsch Iterations')
+        U2, B2 = SVD.golubReinschHOSVD(U2, B2, 10000, threshold)
+        save_pickle(U2, save_directory / 'U2_HOSVD.pkl')
+        # save_pickle(B2, save_directory / 'B2_HOSVD.pkl')
 
     print('Running third SVD')
     flattened_tensor = tensor_to_matrix(data_tensor, 2)
-    U3, B3 = SVD.householderReductionHO(flattened_tensor)
-    SVD.golubReinschHOSVD(U3, B3, 10000, threshold)
+    try:
+        U3 = read_pickle(save_directory / 'U3_HOSVD_Householder.pkl')
+        B3 = read_pickle(save_directory / 'B3_HOSVD_Householder.pkl')
+        print('Householder Reduction read successfully')
+    except FileNotFoundError:
+        print('Running Householder Reduction')
+        U3, B3 = SVD.householderReductionHO(flattened_tensor)
+        save_pickle(U3, save_directory / 'U3_HOSVD_Householder.pkl')
+        save_pickle(B3, save_directory / 'B3_HOSVD_Householder.pkl')
+    try:
+        U3 = read_pickle(save_directory / 'U3_HOSVD.pkl')
+        # B3 = read_pickle(save_directory / 'B3_HOSVD.pkl')
+        print('Left Singular Values read successfully')
+    except FileNotFoundError:
+        print('Running Golub Reinsch Iterations')
+        U3, B3 = SVD.golubReinschHOSVD(U3, B3, 10000, threshold)
+        save_pickle(U3, save_directory / 'U3_HOSVD.pkl')
+        # save_pickle(B1, save_directory / 'B3_HOSVD.pkl')
 
     # Test different reconstructed tensors using different truncated HOSVDs
     fro_errors = []
@@ -119,6 +168,9 @@ def run_HOSVD(data_tensor: np.ndarray, save_directory: Path, ranks: list[int], t
     save_pickle(fro_errors, save_directory / 'fro_errors_HOSVD.pkl')
     save_pickle(elem_stored, save_directory / 'elem_stored_HOSVD.pkl')
 
+def generate_figure(save_directory: Path):
+    pass
+
 if __name__ == '__main__':
     # Threshold for SVD algorithms
     
@@ -130,10 +182,10 @@ if __name__ == '__main__':
 
     s = timeit.default_timer()
     # Ranks to test reconstructions at
-    ranks = [1, 5, 10, 25, 30, 50, 100, 500, 1000, 2000, 3000, 3276]
+    ranks: list[int] = [1, 5, 10, 25, 30, 50, 100, 500, 1000, 2000, 3000, 3276]
 
     # Run SVD on frontal slices and save results to pickle files
-    run_SVD(data_tensor, save_directory, ranks, threshold)
+    # run_SVD(data_tensor, save_directory, ranks, threshold)
 
     # Run HOSVD on whole tensor and save results to pickle files
     run_HOSVD(data_tensor, save_directory, ranks, threshold)
