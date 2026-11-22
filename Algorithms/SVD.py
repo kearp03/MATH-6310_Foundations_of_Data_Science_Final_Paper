@@ -187,32 +187,6 @@ def golubReinschHOSVD(U,B, iterations, threshold):
         golubKahanHOSVD(U,B,a,b)
     return orderHOSVD(U,B, iterate)
 
-def givensRotationMatrix(a, b):
-    if b == 0:
-        c = np.copysign(1, a)
-        s = 0
-    elif a == 0:
-        c = 0
-        s = -np.copysign(1, b)
-    elif abs(a) > abs(b):
-        t = b / a
-        u = np.copysign(np.sqrt(1 + t * t), a)
-        c = 1 / u
-        s = -c * t
-    else:
-        t = a / b
-        u = np.copysign(np.sqrt(1 + t * t), b)
-        s = -1 / u
-        c = t / u
-    givenMatrix = np.zeros((2,2))
-    givenMatrix[0,0] = c
-    givenMatrix[1,1] = c
-    givenMatrix[0,1] = -s
-    givenMatrix[1,0] = s
-
-
-    return givenMatrix
-
 def golubKahanHOSVD(U,B,a,b):
     C = np.empty([2, 2])
     g = B[b-3,b-2] if b-3 >= a else 0.0 
