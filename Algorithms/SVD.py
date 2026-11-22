@@ -161,7 +161,7 @@ def householderReductionHO(A):
 
     return U,B
 
-def orderHOSVD(U,B,iterate,it):
+def orderHOSVD(U,B,iterate):
     diag = np.diag(B).copy()
     U[:, :iterate] *= np.where(diag < 0, -1.0, 1.0)
     diag = np.abs(diag)
@@ -171,7 +171,6 @@ def orderHOSVD(U,B,iterate,it):
 
     B = np.zeros_like(B)
     B[np.arange(iterate), np.arange(iterate)] = diag[order]
-    print(it)
     return U, B
 
 def checkSizeHO(B):
@@ -199,9 +198,9 @@ def golubReinschHOSVD(U,B, iterations, threshold):
                 B[i,i+1]=0
         a,b = checkSizeHO(B)
         if b == 0:
-            return orderHOSVD(U,B, iterate, it)
+            return orderHOSVD(U,B, iterate)
         golubKahanHOSVD(U,B,a,b)
-    return orderHOSVD(U,B, iterate, it) 
+    return orderHOSVD(U,B, iterate) 
 
 def golubKahanHOSVD(U,B,a,b):
     C = np.empty([2, 2])
