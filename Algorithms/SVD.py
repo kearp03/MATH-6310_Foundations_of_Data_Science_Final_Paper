@@ -13,16 +13,16 @@ def householderReduction(A):
     m, n = B.shape
     U = np.identity(m)
     V = np.identity(n)
-
+    iterate = min(m,n)
     # For each diagonal element, we need to apply a left and right 
     # householder reflection to B and the householder matrices. 
-    for k in range(n):
+    for k in range(iterate):
         u = householder(B[k:, k])
         B[k:,k:] -= 2 * np.outer(u, np.matmul(u,  B[k:, k:]))
         U[:,k:] -= 2 * np.outer(np.matmul(U[:, k:],u), u)
         B[k+1:, k] = 0
 
-        if k< n-2:
+        if k< iterate-2:
             v = householder(B[k, k+1:])
             B[k:,k+1:] -= 2 * np.outer(np.matmul(B[k:, k+1:], v), v)
             V[:,k+1:] -= 2 * np.outer(np.matmul(V[:, k+1:], v), v)
@@ -147,22 +147,21 @@ def householderReductionHO(A):
     B = np.array(A, dtype=float)
     m, n = B.shape
     U = np.identity(m)
-    V = np.identity(n)
-
-    for k in range(n):
+    iterate = min(m,n)
+    for k in range(iterate):
         u = householder(B[k:, k])
         B[k:,k:] -= 2 * np.outer(u, np.matmul(u,  B[k:, k:]))
         U[:,k:] -= 2 * np.outer(np.matmul(U[:, k:],u), u)
         B[k+1:, k] = 0
 
-        if k< n-2:
+        if k< iterate-2:
             v = householder(B[k, k+1:])
             B[k:,k+1:] -= 2 * np.outer(np.matmul(B[k:, k+1:], v), v)
             B[k, k+2:] = 0
 
     return U,B
 
-def orderHOSVD(U,B,iterate):
+def orderHOSVD(U,B,iterate,it):
     diag = np.diag(B).copy()
     U[:, :iterate] *= np.where(diag < 0, -1.0, 1.0)
     diag = np.abs(diag)
@@ -172,7 +171,24 @@ def orderHOSVD(U,B,iterate):
 
     B = np.zeros_like(B)
     B[np.arange(iterate), np.arange(iterate)] = diag[order]
+    print(it)
     return U, B
+
+def checkSizeHO(B):
+    superdiag = np.diagonal(B, offset=1)
+    zeroIndex = np.flatnonzero(superdiag == 0)
+    nonzeroIndex = np.flatnonzero(superdiag)
+
+    if len(nonzeroIndex) == 0:
+            return 0,0
+    if len(zeroIndex) == 0:
+        return 0, nonzeroIndex[-1]+1
+    if nonzeroIndex[-1] == len(superdiag) - 1:
+        return zeroIndex[-1] + 1, nonzeroIndex[-1]+1
+    
+    a = np.searchsorted(zeroIndex, nonzeroIndex[-1]) 
+    matrix22para = zeroIndex[a-1] + 1 if a > 0 else 0
+    return matrix22para, nonzeroIndex[-1]+1
 
 def golubReinschHOSVD(U,B, iterations, threshold):
     n,m = B.shape
@@ -181,11 +197,11 @@ def golubReinschHOSVD(U,B, iterations, threshold):
         for i in range(iterate-1):
             if abs(B[i,i+1]) < threshold:
                 B[i,i+1]=0
-        a,b = checkSize(B)
+        a,b = checkSizeHO(B)
         if b == 0:
-            return orderHOSVD(U,B, iterate)
+            return orderHOSVD(U,B, iterate, it)
         golubKahanHOSVD(U,B,a,b)
-    return orderHOSVD(U,B, iterate)
+    return orderHOSVD(U,B, iterate, it) 
 
 def golubKahanHOSVD(U,B,a,b):
     C = np.empty([2, 2])
