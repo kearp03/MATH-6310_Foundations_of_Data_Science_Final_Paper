@@ -232,6 +232,7 @@ def generate_heatmaps(save_directory: Path, slice: int):
         sns.heatmap(approx_data_tensor[:, :, slice], cmap='viridis', annot=False)
         ax.set(title=f'{rank} Rank Approximation HOSVD; Slice {slice}')
         plt.savefig(save_directory / f'{rank}_HOSVD_heatmap_{slice}.eps', format='eps', bbox_inches='tight')
+        plt.clf()
 
 
 if __name__ == '__main__':
