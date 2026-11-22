@@ -161,7 +161,7 @@ def run_HOSVD(data_tensor: np.ndarray, save_directory: Path, ranks: list[int], t
         Sr = tensor_reconstruction(data_tensor, U1[:, :rank].T, U2[:, :rank].T, U3[:, :min(rank, U3.shape[1])].T)
         approx_data_tensor = tensor_reconstruction(Sr, U1[:, :rank], U2[:, :rank], U3[:, :min(rank, U3.shape[1])])
         fro_errors.append(frobenius_norm(data_tensor - approx_data_tensor))
-        elem_stored.append(Sr.shape + U1[:, :rank].shape + U2[:, :rank].shape + U3[:, :min(rank, U3.shape[1])].shape)
+        elem_stored.append(Sr.size + U1[:, :rank].size + U2[:, :rank].size + U3[:, :min(rank, U3.shape[1])].size)
 
     # Save results as pickle files
     save_pickle(ranks, save_directory / 'ranks.pkl')
