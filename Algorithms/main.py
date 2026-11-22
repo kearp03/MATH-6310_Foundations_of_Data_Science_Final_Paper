@@ -57,19 +57,29 @@ def get_data(month: str):
 
 def run_SVD(data_tensor: np.ndarray, save_directory: Path, ranks: list[int], threshold: float):
     # Run SVD on frontal slices and save U, S, and V for later
-    U_matrices: list[np.ndarray] = []
-    S_vectors: list[np.ndarray] = []
-    V_matrices: list[np.ndarray] = []
-    for i in range(data_tensor.shape[2]):
-        print(i)
-        daily_matrix = data_tensor[:,:,i].copy()
+    try:
+        U_matrices = read_pickle(save_directory / 'U_matrices.pkl')
+        S_vectors = read_pickle(save_directory / 'S_vectors.pkl')
+        V_matrices = read_pickle(save_directory / 'V_matrices.pkl')
+        print('SVD matrix components read successfully')
+    except FileNotFoundError:
+        print('Computing SVD of daily frontal slices')
+        U_matrices: list[np.ndarray] = []
+        S_vectors: list[np.ndarray] = []
+        V_matrices: list[np.ndarray] = []
+        for i in range(data_tensor.shape[2]):
+            print(i)
+            daily_matrix = data_tensor[:,:,i].copy()
 
-        U, B, V = SVD.householderReduction(daily_matrix)
-        U, B, V = SVD.golubReinschSVD(U, B, V, iterations=10000, threshold=threshold)
-        S = np.diag(B)
-        U_matrices.append(U)
-        S_vectors.append(S)
-        V_matrices.append(V)
+            U, B, V = SVD.householderReduction(daily_matrix)
+            U, B, V = SVD.golubReinschSVD(U, B, V, iterations=10000, threshold=threshold)
+            S = np.diag(B)
+            U_matrices.append(U)
+            S_vectors.append(S)
+            V_matrices.append(V)
+        save_pickle(U_matrices, save_directory / 'U_matrices.pkl')
+        save_pickle(S_vectors, save_directory / 'S_vectors.pkl')
+        save_pickle(V_matrices, save_directory / 'V_matrices.pkl')
 
     # Test different reconstructed tensors using different truncated SVDs
     fro_errors: list[float] = []
