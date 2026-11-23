@@ -228,9 +228,8 @@ def generate_figure(data_tensor: np.ndarray, save_directory: Path):
     plt.savefig(save_directory / 'Elem_Stored_vs_Error.eps', format='eps', bbox_inches='tight')
     plt.clf()
 
-def generate_heatmaps(save_directory: Path, slice: int):
+def generate_heatmaps(save_directory: Path, slice: int, ranks: list[int]):
     data_tensor = read_pickle(save_directory / 'data_tensor.pkl')
-    ranks = np.array(read_pickle(save_directory / 'ranks.pkl'))
     U_matrices = read_pickle(save_directory / 'U_matrices.pkl')
     S_vectors = read_pickle(save_directory / 'S_vectors.pkl')
     V_matrices = read_pickle(save_directory / 'V_matrices.pkl')
@@ -363,6 +362,8 @@ if __name__ == '__main__':
     monthly_comp_save_directory = Path(__file__).resolve().parent.parent / 'Month_Comparisons'
     monthly_comp_save_directory.mkdir(parents=True, exist_ok=True)
     generate_comparison_figures(monthly_comp_save_directory)
+
+    generate_heatmaps(save_directory, 1, [1, 500, 3000])
 
     e = timeit.default_timer()
 
