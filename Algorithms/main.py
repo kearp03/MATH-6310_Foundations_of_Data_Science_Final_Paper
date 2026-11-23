@@ -44,6 +44,9 @@ def get_data(month: str):
                 V_matrices += read_pickle(april_save_directory / 'V_matrices.pkl')
                 V_matrices += read_pickle(may_save_directory / 'V_matrices.pkl')
                 V_matrices += read_pickle(june_save_directory / 'V_matrices.pkl')
+                save_pickle(U_matrices, save_directory / 'U_matrices.pkl')
+                save_pickle(S_vectors, save_directory / 'S_vectors.pkl')
+                save_pickle(V_matrices, save_directory / 'V_matrices.pkl')
             except FileNotFoundError:
                 print('Please run all other SVD on each month first')
                 exit()
@@ -344,16 +347,16 @@ if __name__ == '__main__':
     ranks: list[int] = [1, 5, 10, 25, 30, 50, 100, 500, 1000, 2000, 3000, 3276]
 
     # Run SVD on frontal slices and save results to pickle files
-    run_SVD(data_tensor, save_directory, ranks, threshold)
+    # run_SVD(data_tensor, save_directory, ranks, threshold)
 
     # Run HOSVD on whole tensor and save results to pickle files
-    run_HOSVD(data_tensor, save_directory, ranks, threshold)
+    # run_HOSVD(data_tensor, save_directory, ranks, threshold)
 
     generate_figure(data_tensor=data_tensor, save_directory=save_directory)
 
-    monthly_comp_save_directory = Path(__file__).resolve().parent.parent / 'Month_Comparisons'
-    save_directory.mkdir(parents=True, exist_ok=True)
-    generate_comparison_figures(monthly_comp_save_directory)
+    # monthly_comp_save_directory = Path(__file__).resolve().parent.parent / 'Month_Comparisons'
+    # save_directory.mkdir(parents=True, exist_ok=True)
+    # generate_comparison_figures(monthly_comp_save_directory)
 
     e = timeit.default_timer()
 
