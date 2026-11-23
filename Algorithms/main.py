@@ -225,6 +225,7 @@ def generate_figure(data_tensor: np.ndarray, save_directory: Path):
     plt.title('Relative Number of Elements Stored vs. Error')
     plt.xlabel('Relative Number of Elements Stored')
     plt.ylabel('Error')
+    plt.legend()
     plt.savefig(save_directory / 'Elem_Stored_vs_Error.eps', format='eps', bbox_inches='tight')
     plt.clf()
 
