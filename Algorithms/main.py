@@ -300,7 +300,7 @@ def generate_comparison_figures(save_directory: Path):
     plt.xlabel('Rank')
     plt.ylabel('Relative Error')
     plt.legend()
-    plt.savefig(save_directory / 'Rank_vs_Error_by_Month_SVD.eps', format='eps', bbox_inches='tight')
+    plt.savefig(save_directory / 'Rank_vs_Error_by_Month_SVD.png', format='png', bbox_inches='tight')
     plt.clf()
 
     # Compare Elements Stored vs. Rel. Error SVD
@@ -312,7 +312,7 @@ def generate_comparison_figures(save_directory: Path):
     plt.xlabel('Relative Number of Elements Stored')
     plt.ylabel('Relative Error')
     plt.legend()
-    plt.savefig(save_directory / 'Elem_Stored_vs_Error_by_Month_SVD.eps', format='eps', bbox_inches='tight')
+    plt.savefig(save_directory / 'Elem_Stored_vs_Error_by_Month_SVD.png', format='png', bbox_inches='tight')
     plt.clf()
 
     # Compare Rank vs. Rel. Error HOSVD
@@ -324,7 +324,7 @@ def generate_comparison_figures(save_directory: Path):
     plt.xlabel('Rank')
     plt.ylabel('Relative Error')
     plt.legend()
-    plt.savefig(save_directory / 'Rank_vs_Error_by_Month_HOSVD.eps', format='eps', bbox_inches='tight')
+    plt.savefig(save_directory / 'Rank_vs_Error_by_Month_HOSVD.png', format='png', bbox_inches='tight')
     plt.clf()
 
     # Compare Elements Stored vs. Rel. Error HOSVD
@@ -336,7 +336,7 @@ def generate_comparison_figures(save_directory: Path):
     plt.xlabel('Relative Number of Elements Stored')
     plt.ylabel('Relative Error')
     plt.legend()
-    plt.savefig(save_directory / 'Elem_Stored_vs_Error_by_Month_HOSVD.eps', format='eps', bbox_inches='tight')
+    plt.savefig(save_directory / 'Elem_Stored_vs_Error_by_Month_HOSVD.png', format='png', bbox_inches='tight')
     plt.clf()
 
 if __name__ == '__main__':
