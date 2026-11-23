@@ -197,7 +197,7 @@ def generate_figure(data_tensor: np.ndarray, save_directory: Path):
     plt.savefig(save_directory / 'Rank_vs_Error.eps', format='eps', bbox_inches='tight')
     plt.clf()
 
-    # Generate error vs. rel. elements stored
+    # Generate rel. elements stored vs. error
     plt.plot(elem_stored_SVD, errors_SVD, label='Frontal Slice SVD')
     plt.plot(elem_stored_HOSVD, errors_HOSVD, label='HOSVD')
     plt.title('Relative Number of Elements Stored vs. Error')
@@ -234,6 +234,83 @@ def generate_heatmaps(save_directory: Path, slice: int):
         plt.savefig(save_directory / f'{rank}_HOSVD_heatmap_{slice}.eps', format='eps', bbox_inches='tight')
         plt.clf()
 
+def generate_comparison_figures(save_directory: Path):
+    # Get each dataset's data tensor and save directories
+    april_data_tensor, april_save_directory = get_data('april')
+    may_data_tensor, may_save_directory = get_data('may')
+    june_data_tensor, june_save_directory = get_data('june')
+    all_data_tensor, all_save_directory = get_data('all')
+
+    # Read in all data
+    april_ranks = np.array(read_pickle(april_save_directory / 'ranks.pkl'))
+    april_errors_SVD = np.array(read_pickle(april_save_directory / 'fro_errors_SVD.pkl'))
+    april_elem_stored_SVD = np.array(read_pickle(april_save_directory / 'elem_stored_SVD.pkl')) / april_data_tensor.size
+    april_errors_HOSVD = np.array(read_pickle(april_save_directory / 'fro_errors_HOSVD.pkl'))
+    april_elem_stored_HOSVD = np.array(read_pickle(april_save_directory / 'elem_stored_HOSVD.pkl')) / april_data_tensor.size
+
+    may_ranks = np.array(read_pickle(may_save_directory / 'ranks.pkl'))
+    may_errors_SVD = np.array(read_pickle(may_save_directory / 'fro_errors_SVD.pkl'))
+    may_elem_stored_SVD = np.array(read_pickle(may_save_directory / 'elem_stored_SVD.pkl')) / may_data_tensor.size
+    may_errors_HOSVD = np.array(read_pickle(may_save_directory / 'fro_errors_HOSVD.pkl'))
+    may_elem_stored_HOSVD = np.array(read_pickle(may_save_directory / 'elem_stored_HOSVD.pkl')) / may_data_tensor.size
+
+    june_ranks = np.array(read_pickle(june_save_directory / 'ranks.pkl'))
+    june_errors_SVD = np.array(read_pickle(june_save_directory / 'fro_errors_SVD.pkl'))
+    june_elem_stored_SVD = np.array(read_pickle(june_save_directory / 'elem_stored_SVD.pkl')) / june_data_tensor.size
+    june_errors_HOSVD = np.array(read_pickle(june_save_directory / 'fro_errors_HOSVD.pkl'))
+    june_elem_stored_HOSVD = np.array(read_pickle(june_save_directory / 'elem_stored_HOSVD.pkl')) / june_data_tensor.size
+
+    all_ranks = np.array(read_pickle(all_save_directory / 'ranks.pkl'))
+    all_errors_SVD = np.array(read_pickle(all_save_directory / 'fro_errors_SVD.pkl'))
+    all_elem_stored_SVD = np.array(read_pickle(all_save_directory / 'elem_stored_SVD.pkl')) / all_data_tensor.size
+    all_errors_HOSVD = np.array(read_pickle(all_save_directory / 'fro_errors_HOSVD.pkl'))
+    all_elem_stored_HOSVD = np.array(read_pickle(all_save_directory / 'elem_stored_HOSVD.pkl')) / all_data_tensor.size
+
+    # Compare Rank vs. Error SVD
+    plt.plot(april_ranks, april_errors_SVD, label='April')
+    plt.plot(may_ranks, may_errors_SVD, label='May')
+    plt.plot(june_ranks, june_errors_SVD, label='June')
+    plt.plot(all_ranks, all_errors_SVD, label='All Months')
+    plt.title('Rank of Truncated SVD vs. Frobenius norm error by Month')
+    plt.xlabel('Rank')
+    plt.ylabel('Error')
+    plt.legend()
+    plt.savefig(save_directory / 'Rank_vs_Error_by_Month_SVD.eps', format='eps', bbox_inches='tight')
+    plt.clf()
+
+    # Compare Elements Stored vs. Error SVD
+    plt.plot(april_elem_stored_SVD, april_errors_SVD, label='April')
+    plt.plot(may_elem_stored_SVD, may_errors_SVD, label='May')
+    plt.plot(june_elem_stored_SVD, april_errors_SVD, label='June')
+    plt.plot(all_elem_stored_SVD, april_errors_SVD, label='All Months')
+    plt.title('Relative Number of Elements Stored in SVD vs. Error by Month')
+    plt.xlabel('Relative Number of Elements Stored')
+    plt.ylabel('Error')
+    plt.savefig(save_directory / 'Elem_Stored_vs_Error_by_Month_SVD.eps', format='eps', bbox_inches='tight')
+    plt.clf()
+
+    # Compare Rank vs. Error HOSVD
+    plt.plot(april_ranks, april_errors_HOSVD, label='April')
+    plt.plot(may_ranks, may_errors_HOSVD, label='May')
+    plt.plot(june_ranks, june_errors_HOSVD, label='June')
+    plt.plot(all_ranks, all_errors_HOSVD, label='All Months')
+    plt.title('Rank of Truncated HOSVD vs. Frobenius norm error by Month')
+    plt.xlabel('Rank')
+    plt.ylabel('Error')
+    plt.legend()
+    plt.savefig(save_directory / 'Rank_vs_Error_by_Month_HOSVD.eps', format='eps', bbox_inches='tight')
+    plt.clf()
+
+    # Compare Elements Stored vs. Error HOSVD
+    plt.plot(april_elem_stored_HOSVD, april_errors_HOSVD, label='April')
+    plt.plot(may_elem_stored_HOSVD, may_errors_HOSVD, label='May')
+    plt.plot(june_elem_stored_HOSVD, april_errors_HOSVD, label='June')
+    plt.plot(all_elem_stored_HOSVD, april_errors_HOSVD, label='All Months')
+    plt.title('Relative Number of Elements Stored in HOSVD vs. Error by Month')
+    plt.xlabel('Relative Number of Elements Stored')
+    plt.ylabel('Error')
+    plt.savefig(save_directory / 'Elem_Stored_vs_Error_by_Month_HOSVD.eps', format='eps', bbox_inches='tight')
+    plt.clf()
 
 if __name__ == '__main__':
     # Threshold for SVD algorithms
@@ -253,7 +330,12 @@ if __name__ == '__main__':
     # Run HOSVD on whole tensor and save results to pickle files
     # run_HOSVD(data_tensor, save_directory, ranks, threshold)
 
-    generate_figure(data_tensor=data_tensor, save_directory=save_directory)
+    # generate_figure(data_tensor=data_tensor, save_directory=save_directory)
+
+    monthly_comp_save_directory = Path(__file__).resolve().parent.parent / 'Month_Comparisons'
+    save_directory.mkdir(parents=True, exist_ok=True)
+
+    generate_comparison_figures(monthly_comp_save_directory)
 
     e = timeit.default_timer()
 
