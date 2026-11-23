@@ -49,8 +49,7 @@ def get_data(month: str):
                 save_pickle(V_matrices, save_directory / 'V_matrices.pkl')
                 print('Previous SVD files loaded successfully')
             except FileNotFoundError:
-                print('Please run all other SVD on each month first')
-                exit()
+                print('Please run SVD on each month first to load previous SVD files')
         case _:
             print('Month not available')
             exit()
@@ -239,21 +238,25 @@ def generate_heatmaps(save_directory: Path, slice: int):
     U2 = read_pickle(save_directory / 'U2_HOSVD.pkl')
     U3 = read_pickle(save_directory / 'U3_HOSVD.pkl')
 
-    sns.heatmap(data_tensor[:,:,slice], cmap='viridis', annot=False)
+    ax = sns.heatmap(np.rot90(data_tensor[:,:,slice]), cmap='viridis', annot=False)
+    ax.set(title=f'Original Slice {slice}')
+    ax.tick_params(left=False, bottom=False)
     plt.savefig(save_directory / 'base_heatmap.eps', format='eps', bbox_inches='tight')
     plt.clf()
 
     for rank in ranks:
         approx_data_tensor = matrix_reconstruction(S_vectors[slice], U_matrices[slice], V_matrices[slice], rank)
-        ax = sns.heatmap(approx_data_tensor, cmap='viridis', annot=False)
+        ax = sns.heatmap(np.rot90(approx_data_tensor), cmap='viridis', annot=False)
         ax.set(title=f'{rank} Rank Approximation SVD; Slice {slice}')
+        ax.tick_params(left=False, bottom=False)
         plt.savefig(save_directory / f'{rank}_SVD_heatmap_{slice}.eps', format='eps', bbox_inches='tight')
         plt.clf()
 
         Sr = tensor_reconstruction(data_tensor, U1[:, :rank].T, U2[:, :rank].T, U3[:, :min(rank, U3.shape[1])].T)
         approx_data_tensor = tensor_reconstruction(Sr, U1[:, :rank], U2[:, :rank], U3[:, :min(rank, U3.shape[1])])
-        sns.heatmap(approx_data_tensor[:, :, slice], cmap='viridis', annot=False)
+        sns.heatmap(np.rot90(approx_data_tensor[:, :, slice]), cmap='viridis', annot=False)
         ax.set(title=f'{rank} Rank Approximation HOSVD; Slice {slice}')
+        ax.tick_params(left=False, bottom=False)
         plt.savefig(save_directory / f'{rank}_HOSVD_heatmap_{slice}.eps', format='eps', bbox_inches='tight')
         plt.clf()
 
@@ -309,6 +312,7 @@ def generate_comparison_figures(save_directory: Path):
     plt.title('Relative Number of Elements Stored in SVD vs. Relative Error by Month')
     plt.xlabel('Relative Number of Elements Stored')
     plt.ylabel('Relative Error')
+    plt.legend()
     plt.savefig(save_directory / 'Elem_Stored_vs_Error_by_Month_SVD.eps', format='eps', bbox_inches='tight')
     plt.clf()
 
@@ -332,6 +336,7 @@ def generate_comparison_figures(save_directory: Path):
     plt.title('Relative Number of Elements Stored in HOSVD vs. Relative Error by Month')
     plt.xlabel('Relative Number of Elements Stored')
     plt.ylabel('Relative Error')
+    plt.legend()
     plt.savefig(save_directory / 'Elem_Stored_vs_Error_by_Month_HOSVD.eps', format='eps', bbox_inches='tight')
     plt.clf()
 
@@ -348,16 +353,16 @@ if __name__ == '__main__':
     ranks: list[int] = [1, 5, 10, 25, 30, 50, 100, 500, 1000, 2000, 3000, 3276]
 
     # Run SVD on frontal slices and save results to pickle files
-    # run_SVD(data_tensor, save_directory, ranks, threshold)
+    run_SVD(data_tensor, save_directory, ranks, threshold)
 
     # Run HOSVD on whole tensor and save results to pickle files
-    # run_HOSVD(data_tensor, save_directory, ranks, threshold)
+    run_HOSVD(data_tensor, save_directory, ranks, threshold)
 
     generate_figure(data_tensor=data_tensor, save_directory=save_directory)
 
-    # monthly_comp_save_directory = Path(__file__).resolve().parent.parent / 'Month_Comparisons'
-    # save_directory.mkdir(parents=True, exist_ok=True)
-    # generate_comparison_figures(monthly_comp_save_directory)
+    monthly_comp_save_directory = Path(__file__).resolve().parent.parent / 'Month_Comparisons'
+    monthly_comp_save_directory.mkdir(parents=True, exist_ok=True)
+    generate_comparison_figures(monthly_comp_save_directory)
 
     e = timeit.default_timer()
 
