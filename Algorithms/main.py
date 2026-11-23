@@ -47,6 +47,7 @@ def get_data(month: str):
                 save_pickle(U_matrices, save_directory / 'U_matrices.pkl')
                 save_pickle(S_vectors, save_directory / 'S_vectors.pkl')
                 save_pickle(V_matrices, save_directory / 'V_matrices.pkl')
+                print('Previous SVD files loaded successfully')
             except FileNotFoundError:
                 print('Please run all other SVD on each month first')
                 exit()
