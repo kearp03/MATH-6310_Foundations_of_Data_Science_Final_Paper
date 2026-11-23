@@ -1,0 +1,88 @@
+{\rtf1\ansi\ansicpg1252\cocoartf2639
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fswiss\fcharset0 Helvetica;}
+{\colortbl;\red255\green255\blue255;}
+{\*\expandedcolortbl;;}
+\margl1440\margr1440\vieww11520\viewh8400\viewkind0
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 // Define the SMAP-HB geographic subset\
+\
+var region = ee.Geometry.Rectangle([\
+  -117.539907,  // West longitude\
+   46.320052,   // South latitude\
+  -116.620185,  // East longitude\
+   47.229775    // North latitude\
+]);\
+\
+// Load the JRC Global Surface Water dataset\
+\
+var water = ee.Image('JRC/GSW1_4/GlobalSurfaceWater');\
+\
+// Select the water occurrence band\
+// Values range from 0 to 100:\
+// 0 = water never detected\
+// 100 = water detected in all valid observations\
+\
+var occurrence = water.select('occurrence');\
+\
+// Define a persistent-water mask\
+// A threshold of 90% identifies locations\
+// where water was detected at least 90%\
+// of the time in valid observations.\
+\
+var permanentWater = occurrence.gte(90).selfMask();\
+\
+// Display satellite imagery\
+\
+Map.setOptions('SATELLITE');\
+\
+Map.centerObject(region, 9);\
+\
+// Display water occurrence\
+\
+Map.addLayer(\
+  occurrence.clip(region),\
+  \{\
+    min: 0,\
+    max: 100,\
+    palette: ['white', 'lightblue', 'blue']\
+  \},\
+  'Water Occurrence (%)'\
+);\
+\
+// Display persistent water\
+\
+Map.addLayer(\
+  permanentWater.clip(region),\
+  \{\
+    palette: ['cyan']\
+  \},\
+  'Persistent Water (>=90%)'\
+);\
+\
+// Display study area boundary\
+\
+Map.addLayer(\
+  region,\
+  \{color: 'yellow'\},\
+  'SMAP-HB Study Region'\
+);\
+\
+// Calculate approximate water surface area\
+\
+var waterArea = ee.Image.pixelArea()\
+  .updateMask(permanentWater)\
+  .reduceRegion(\{\
+    reducer: ee.Reducer.sum(),\
+    geometry: region,\
+    scale: 30,\
+    maxPixels: 1e9\
+  \});\
+\
+// Convert square meters to square kilometers\
+\
+var waterAreaKm2 = ee.Number(waterArea.get('area'))\
+  .divide(1e6);\
+\
+\
+print('Persistent Water Area (km\'b2):', waterAreaKm2);}
