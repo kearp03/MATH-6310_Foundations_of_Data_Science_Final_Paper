@@ -364,7 +364,7 @@ if __name__ == '__main__':
     monthly_comp_save_directory.mkdir(parents=True, exist_ok=True)
     generate_comparison_figures(monthly_comp_save_directory)
 
-    generate_heatmaps(save_directory, 1, [1, 500, 3000])
+    generate_heatmaps(save_directory, 1, [500])
 
     e = timeit.default_timer()
 
