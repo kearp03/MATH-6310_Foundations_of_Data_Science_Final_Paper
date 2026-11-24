@@ -244,17 +244,17 @@ def generate_heatmaps(save_directory: Path, slice: int, ranks: list[int]):
     plt.clf()
 
     for rank in ranks:
-        approx_data_tensor = matrix_reconstruction(S_vectors[slice], U_matrices[slice], V_matrices[slice], rank)
-        ax = sns.heatmap(np.rot90(approx_data_tensor), cmap='viridis', annot=False, xticklabels=False, yticklabels=False)
-        ax.set(title=f'{rank} Rank Approximation SVD; Slice {slice}')
-        plt.savefig(save_directory / f'{rank}_SVD_heatmap_{slice}.eps', format='eps', bbox_inches='tight')
-        plt.clf()
+        # approx_data_matrix = matrix_reconstruction(S_vectors[slice], U_matrices[slice], V_matrices[slice], rank)
+        # ax = sns.heatmap(np.rot90(approx_data_matrix), cmap='viridis', annot=False, xticklabels=False, yticklabels=False)
+        # ax.set(title=f'{rank} Rank Approximation SVD; Slice {slice}')
+        # plt.savefig(save_directory / f'{rank}_SVD_heatmap_{slice}.png', format='png', bbox_inches='tight')
+        # plt.clf()
 
         Sr = tensor_reconstruction(data_tensor, U1[:, :rank].T, U2[:, :rank].T, U3[:, :min(rank, U3.shape[1])].T)
         approx_data_tensor = tensor_reconstruction(Sr, U1[:, :rank], U2[:, :rank], U3[:, :min(rank, U3.shape[1])])
-        sns.heatmap(np.rot90(approx_data_tensor[:, :, slice]), cmap='viridis', annot=False, xticklabels=False, yticklabels=False)
+        ax = sns.heatmap(np.rot90(approx_data_tensor[:, :, slice]), cmap='viridis', annot=False, xticklabels=False, yticklabels=False)
         ax.set(title=f'{rank} Rank Approximation HOSVD; Slice {slice}')
-        plt.savefig(save_directory / f'{rank}_HOSVD_heatmap_{slice}.eps', format='eps', bbox_inches='tight')
+        plt.savefig(save_directory / f'{rank}_HOSVD_heatmap_{slice}.png', format='png', bbox_inches='tight')
         plt.clf()
 
 def generate_comparison_figures(save_directory: Path):
@@ -298,7 +298,7 @@ def generate_comparison_figures(save_directory: Path):
     plt.xlabel('Rank')
     plt.ylabel('Relative Error')
     plt.legend()
-    plt.savefig(save_directory / 'Rank_vs_Error_by_Month_SVD.png', format='png', bbox_inches='tight')
+    plt.savefig(save_directory / 'Rank_vs_Error_by_Month_SVD.eps', format='eps', bbox_inches='tight')
     plt.clf()
 
     # Compare Elements Stored vs. Rel. Error SVD
@@ -310,7 +310,7 @@ def generate_comparison_figures(save_directory: Path):
     plt.xlabel('Relative Number of Elements Stored')
     plt.ylabel('Relative Error')
     plt.legend()
-    plt.savefig(save_directory / 'Elem_Stored_vs_Error_by_Month_SVD.png', format='png', bbox_inches='tight')
+    plt.savefig(save_directory / 'Elem_Stored_vs_Error_by_Month_SVD.eps', format='eps', bbox_inches='tight')
     plt.clf()
 
     # Compare Rank vs. Rel. Error HOSVD
@@ -322,7 +322,7 @@ def generate_comparison_figures(save_directory: Path):
     plt.xlabel('Rank')
     plt.ylabel('Relative Error')
     plt.legend()
-    plt.savefig(save_directory / 'Rank_vs_Error_by_Month_HOSVD.png', format='png', bbox_inches='tight')
+    plt.savefig(save_directory / 'Rank_vs_Error_by_Month_HOSVD.eps', format='eps', bbox_inches='tight')
     plt.clf()
 
     # Compare Elements Stored vs. Rel. Error HOSVD
@@ -334,7 +334,7 @@ def generate_comparison_figures(save_directory: Path):
     plt.xlabel('Relative Number of Elements Stored')
     plt.ylabel('Relative Error')
     plt.legend()
-    plt.savefig(save_directory / 'Elem_Stored_vs_Error_by_Month_HOSVD.png', format='png', bbox_inches='tight')
+    plt.savefig(save_directory / 'Elem_Stored_vs_Error_by_Month_HOSVD.eps', format='eps', bbox_inches='tight')
     plt.clf()
 
 if __name__ == '__main__':
