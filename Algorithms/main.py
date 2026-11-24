@@ -238,18 +238,18 @@ def generate_heatmaps(save_directory: Path, slice: int, ranks: list[int]):
     U2 = read_pickle(save_directory / 'U2_HOSVD.pkl')
     U3 = read_pickle(save_directory / 'U3_HOSVD.pkl')
 
-    # ax = sns.heatmap(np.rot90(data_tensor[:,:,slice]), cmap='viridis', annot=False, xticklabels=False, yticklabels=False)
-    # ax.set(title=f'Original Slice {slice}')
-    # plt.savefig(save_directory / 'base_heatmap.eps', format='eps', bbox_inches='tight')
-    # plt.clf()
-    # plt.cla()
+    ax = sns.heatmap(np.rot90(data_tensor[:,:,slice]), cmap='viridis', annot=False, xticklabels=False, yticklabels=False)
+    ax.set(title=f'Original Slice {slice}')
+    plt.savefig(save_directory / 'base_heatmap.eps', format='eps', bbox_inches='tight')
+    plt.clf()
+    plt.cla()
 
     for rank in ranks:
-        # approx_data_matrix = matrix_reconstruction(S_vectors[slice], U_matrices[slice], V_matrices[slice], rank)
-        # ax = sns.heatmap(np.rot90(approx_data_matrix), cmap='viridis', annot=False, xticklabels=False, yticklabels=False)
-        # ax.set(title=f'{rank} Rank Approximation SVD; Slice {slice}')
-        # plt.savefig(save_directory / f'{rank}_SVD_heatmap_{slice}.png', format='png', bbox_inches='tight')
-        # plt.clf()
+        approx_data_matrix = matrix_reconstruction(S_vectors[slice], U_matrices[slice], V_matrices[slice], rank)
+        ax = sns.heatmap(np.rot90(approx_data_matrix), cmap='viridis', annot=False, xticklabels=False, yticklabels=False)
+        ax.set(title=f'{rank} Rank Approximation SVD; Slice {slice}')
+        plt.savefig(save_directory / f'{rank}_SVD_heatmap_{slice}.png', format='png', bbox_inches='tight')
+        plt.clf()
         plt.cla()
 
         Sr = tensor_reconstruction(data_tensor, U1[:, :rank].T, U2[:, :rank].T, U3[:, :min(rank, U3.shape[1])].T)
