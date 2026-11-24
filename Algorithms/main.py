@@ -238,10 +238,11 @@ def generate_heatmaps(save_directory: Path, slice: int, ranks: list[int]):
     U2 = read_pickle(save_directory / 'U2_HOSVD.pkl')
     U3 = read_pickle(save_directory / 'U3_HOSVD.pkl')
 
-    ax = sns.heatmap(np.rot90(data_tensor[:,:,slice]), cmap='viridis', annot=False, xticklabels=False, yticklabels=False)
-    ax.set(title=f'Original Slice {slice}')
-    plt.savefig(save_directory / 'base_heatmap.eps', format='eps', bbox_inches='tight')
-    plt.clf()
+    # ax = sns.heatmap(np.rot90(data_tensor[:,:,slice]), cmap='viridis', annot=False, xticklabels=False, yticklabels=False)
+    # ax.set(title=f'Original Slice {slice}')
+    # plt.savefig(save_directory / 'base_heatmap.eps', format='eps', bbox_inches='tight')
+    # plt.clf()
+    # plt.cla()
 
     for rank in ranks:
         # approx_data_matrix = matrix_reconstruction(S_vectors[slice], U_matrices[slice], V_matrices[slice], rank)
@@ -249,6 +250,7 @@ def generate_heatmaps(save_directory: Path, slice: int, ranks: list[int]):
         # ax.set(title=f'{rank} Rank Approximation SVD; Slice {slice}')
         # plt.savefig(save_directory / f'{rank}_SVD_heatmap_{slice}.png', format='png', bbox_inches='tight')
         # plt.clf()
+        plt.cla()
 
         Sr = tensor_reconstruction(data_tensor, U1[:, :rank].T, U2[:, :rank].T, U3[:, :min(rank, U3.shape[1])].T)
         approx_data_tensor = tensor_reconstruction(Sr, U1[:, :rank], U2[:, :rank], U3[:, :min(rank, U3.shape[1])])
@@ -256,6 +258,7 @@ def generate_heatmaps(save_directory: Path, slice: int, ranks: list[int]):
         ax.set(title=f'{rank} Rank Approximation HOSVD; Slice {slice}')
         plt.savefig(save_directory / f'{rank}_HOSVD_heatmap_{slice}.png', format='png', bbox_inches='tight')
         plt.clf()
+        plt.cla()
 
 def generate_comparison_figures(save_directory: Path):
     # Get each dataset's data tensor and save directories
